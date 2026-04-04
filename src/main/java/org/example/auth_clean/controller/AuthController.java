@@ -42,7 +42,7 @@ public class AuthController{
 
     record RefreshRequest(String oldRefreshToken){}
 
-    @PostMapping("refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody RefreshRequest refreshRequest){
         return authService.refresh(refreshRequest.oldRefreshToken)
                 .map(loginResult ->
@@ -58,8 +58,8 @@ public class AuthController{
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestBody LogoutRequest logoutRequest){
-        Boolean revokedRefreshToken = authService.revokeRefreshToken(logoutRequest.accessToken());
-        Boolean blacklistedAccessToken = authService.blackListAccessToken(logoutRequest.refreshToken());
+        Boolean revokedRefreshToken = authService.revokeRefreshToken(logoutRequest.refreshToken());
+        Boolean blacklistedAccessToken = authService.blackListAccessToken(logoutRequest.accessToken());
         return ResponseEntity.ok
                 (Map.of(
                         "revokedRefreshToken", revokedRefreshToken,
