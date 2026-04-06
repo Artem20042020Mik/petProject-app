@@ -53,7 +53,7 @@ public class AuthController{
                 .toString();
     }
 
-    @PostMapping("/register")
+/*    @PostMapping("/register")
     public ResponseEntity<String> register (@RequestBody RegisterAndLoginRequest registerRequest){
         try{
             User savedUser = userService.register(registerRequest.email(), registerRequest.password() );
@@ -62,7 +62,12 @@ public class AuthController{
         catch (Exception e) {
             return ResponseEntity.badRequest().body("there was an error" + e.getMessage());
         }
-    }
+    }*/
+@PostMapping("/register")
+public ResponseEntity<String> register(@RequestBody RegisterAndLoginRequest request) {
+    User savedUser = userService.register(request.email(), request.password());
+    return ResponseEntity.ok("user saved with email: " + savedUser.getEmail());
+}
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody RegisterAndLoginRequest loginRequest, HttpServletResponse response){
