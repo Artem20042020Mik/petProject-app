@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.auth0.jwt.algorithms.Algorithm;
 
-import java.sql.Date;
+import java.util.Date;
 import java.time.Instant;
 
 @Component
@@ -27,7 +27,7 @@ public class JwtUtil{
 
     public String generateAccessToken(Long userId, String role, String email){
         Instant now = Instant.now();
-        Instant exp = now.plusSeconds(accessTokenTtl * 60);
+        Instant exp = now.plusSeconds(accessTokenTtl * 6);
         return JWT.create()
                 .withIssuer("auth_clean")
                 .withIssuedAt(Date.from(now))
@@ -40,7 +40,7 @@ public class JwtUtil{
 
     public String generateRefreshToken(Long userId){
         Instant now = Instant.now();
-        Instant exp = now.plusSeconds(refreshTokenTtl * 60);
+        Instant exp = now.plusSeconds(refreshTokenTtl * 24 * 60 * 60);
 
         return JWT.create()
                 .withIssuer("auth_clean")
