@@ -27,7 +27,7 @@ public class JwtUtil{
 
     public String generateAccessToken(Long userId, String role, String email){
         Instant now = Instant.now();
-        Instant exp = now.plusSeconds(accessTokenTtl * 6);
+        Instant exp = now.plusSeconds(accessTokenTtl * 60);
         return JWT.create()
                 .withIssuer("auth_clean")
                 .withIssuedAt(Date.from(now))

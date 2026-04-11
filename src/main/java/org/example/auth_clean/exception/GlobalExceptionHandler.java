@@ -19,4 +19,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException e) {
         return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> handleResourceNotFound(ResourceNotFoundException e){
+        return ResponseEntity.status(404).body(Map.of("error: ",e.getMessage()));
+    }
 }
