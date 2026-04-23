@@ -1,6 +1,7 @@
 package org.example.auth_clean.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.example.auth_clean.dto.RegisterAndLoginRequest;
 import org.example.auth_clean.model.User;
 import org.example.auth_clean.service.AuthService;
@@ -26,6 +27,9 @@ public class AuthController{
     @Value("${app.jwt.refreshTokenTtlDays}")
     private long refreshTokenTtl;
 
+    @Value("${app.cookie.sameSite}")
+    private String sameSite;
+
     public AuthController(UserService userService, AuthService authService){
         this.userService = userService;
         this.authService=authService;
@@ -35,7 +39,7 @@ public class AuthController{
         return ResponseCookie.from("refreshToken", value)
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Strict")
+                .sameSite(sameSite)
                 .path("/auth")
                 .maxAge(Duration.ofDays(refreshTokenTtl))
                 .build()
@@ -46,31 +50,21 @@ public class AuthController{
         return ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Strict")
+                .sameSite(sameSite)
                 .maxAge(0)
                 .path("/auth")
                 .build()
                 .toString();
     }
 
-/*    @PostMapping("/register")
-    public ResponseEntity<String> register (@RequestBody RegisterAndLoginRequest registerRequest){
-        try{
-            User savedUser = userService.register(registerRequest.email(), registerRequest.password() );
-            return ResponseEntity.ok("user saved with email: " + savedUser.getEmail() );
-        }
-        catch (Exception e) {
-            return ResponseEntity.badRequest().body("there was an error" + e.getMessage());
-        }
-    }*/
 @PostMapping("/register")
-public ResponseEntity<String> register(@RequestBody RegisterAndLoginRequest request) {
+public ResponseEntity<String> register(@Valid @RequestBody RegisterAndLoginRequest request) {
     User savedUser = userService.register(request.email(), request.password());
     return ResponseEntity.ok("user saved with email: " + savedUser.getEmail());
 }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody RegisterAndLoginRequest loginRequest, HttpServletResponse response){
+    public ResponseEntity<?> login(@Valid @RequestBody RegisterAndLoginRequest loginRequest, HttpServletResponse response){
         return authService.login(loginRequest.email(), loginRequest.password()).map(loginResult -> {
             response.addHeader(HttpHeaders.SET_COOKIE, createRefreshCookie(loginResult.refreshToken));
             return ResponseEntity.ok(Map.of("accessToken", loginResult.accessToken));

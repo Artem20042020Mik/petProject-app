@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.example</groupId>
-    <artifactId>auth_clean</artifactId>
+    <artifactId>fullstackTaskTracker</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>auth_clean</name>
     <description>auth_clean</description>
