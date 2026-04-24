@@ -1,6 +1,7 @@
 package org.example.auth_clean.config;
 
 import org.example.auth_clean.security.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +18,9 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Value("${app.cors.allowed-origins:http://localhost:5173}")
+    private String frontendUrl;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter){
         this.jwtAuthenticationFilter=jwtAuthenticationFilter;
@@ -39,7 +43,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration configuration= new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://127.0.0.1:5173","http://localhost:3000"));
+        configuration.setAllowedOrigins(List.of(frontendUrl, "http://localhost:5173", "http://127.0.0.1:5173","http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS" ));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
