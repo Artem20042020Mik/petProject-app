@@ -128,8 +128,8 @@ function LandingPage() {
                             </div>
 
                             <div className="flex gap-4 mt-auto">
-                                <a href="#" className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-lg font-bold hover:bg-slate-100 transition">
-                                    <GitCommit className="w-5 h-5" /> My GitHub
+                                <a href="https://github.com/Artem20042020Mik/petProject-app" className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-lg font-bold hover:bg-slate-100 transition">
+                                    <GitCommit className="w-5 h-5" /> GitHub Project
                                 </a>
                             </div>
                         </div>
