@@ -1,36 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProjects, createProject } from '../api/projects.js';
+import { getProjects, createProject, deleteProject } from '../api/projects.js';
 import { getTasksByProject, createTask, updateTaskStatus, deleteTask } from '../api/tasks.js';
 import { logout } from '../api/auth.js';
 import {
-    Layout, Plus, Folder, Search, LogOut,
+    Plus, Folder, Search, LogOut,
     CheckCircle2, Calendar, Layers, Circle, X, Trash2, User
 } from 'lucide-react';
 
 function ProjectsPage() {
     const navigate = useNavigate();
 
-    // Состояния данных
     const [projects, setProjects] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [selectedProject, setSelectedProject] = useState(null);
 
-    // Состояния UI
     const [searchQuery, setSearchQuery] = useState("");
     const [activeFilter, setActiveFilter] = useState("ALL");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // Состояния модальных окон
     const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
-    // Состояния форм
-    const [newProjectForm, setNewProjectForm] = useState({ name: '', description: '' });
+    const [newProjectForm, setNewProjectForm] = useState({ name: '' });
     const [newTaskForm, setNewTaskForm] = useState({ title: '', description: '', priority: 'MEDIUM', deadline: '' });
 
-    // Загрузка проектов
     const loadProjects = async () => {
         setIsLoading(true);
         try {
@@ -40,7 +35,7 @@ function ProjectsPage() {
                 setSelectedProject(response.data[0]);
             }
         } catch (e) {
-            setError(e.response?.data?.error || "Ошибка при загрузке проектов");
+            setError(e.response?.data?.error || "error loading the projects");
         } finally {
             setIsLoading(false);
         }
@@ -50,7 +45,6 @@ function ProjectsPage() {
         loadProjects();
     }, []);
 
-    // Загрузка задач при смене проекта
     useEffect(() => {
         const loadTasks = async () => {
             if (!selectedProject) return;
@@ -58,39 +52,53 @@ function ProjectsPage() {
                 const response = await getTasksByProject(selectedProject.id);
                 setTasks(response.data);
             } catch (e) {
-                setError(e.response?.data?.error || "Ошибка при загрузке задач");
+                setError(e.response?.data?.error || "error loading the tasks");
             }
         };
         loadTasks();
     }, [selectedProject]);
 
-    // Обработчик выхода
     const handleLogout = async () => {
         try {
             await logout();
         } catch (e) {
-            console.error("Ошибка при выходе", e);
+            console.error("error logging out", e);
         } finally {
             localStorage.removeItem("accessToken");
             navigate("/login");
         }
     };
 
-    // Создание проекта
     const handleCreateProject = async (e) => {
         e.preventDefault();
         try {
-            const response = await createProject(newProjectForm.name, newProjectForm.description);
+            const response = await createProject(newProjectForm.name,"");
             setProjects([response.data, ...projects]);
             setSelectedProject(response.data);
             setIsProjectModalOpen(false);
-            setNewProjectForm({ name: '', description: '' });
+            setNewProjectForm({ name: ''});
         } catch (e) {
-            alert(e.response?.data?.error || "Ошибка при создании проекта");
+            alert(e.response?.data?.error || "error creating a project");
         }
     };
 
-    // Создание задачи
+    const handleDeleteProject= async (e, projectId) =>{
+        e.stopPropagation();
+        if (!window.confirm("are you sure you want to delete this project? all related tasks will be lost.")) return;
+        try{
+            await deleteProject(projectId);
+            const updatedProjects = projects.filter(f=>f.id!==projectId);
+            setProjects(updatedProjects);
+            if (selectedProject?.id===projectId){
+                setSelectedProject(updatedProjects.length>0 ? updatedProjects[0] : null);
+                setTasks([]);
+            }
+        }
+        catch (e) {
+            alert(e.response?.data?.error || "error deleting the project");
+        }
+    }
+
     const handleCreateTask = async (e) => {
         e.preventDefault();
         try {
@@ -105,40 +113,36 @@ function ProjectsPage() {
             setIsTaskModalOpen(false);
             setNewTaskForm({ title: '', description: '', priority: 'MEDIUM', deadline: '' });
         } catch (e) {
-            alert(e.response?.data?.error || "Ошибка при создании задачи");
+            alert(e.response?.data?.error || "error creating a task");
         }
     };
 
-    // Обновление статуса задачи
     const handleToggleTaskStatus = async (task) => {
         const newStatus = task.status === "DONE" ? "TODO" : "DONE";
         try {
             const response = await updateTaskStatus(task.id, newStatus);
             setTasks(tasks.map(t => t.id === task.id ? response.data : t));
         } catch (e) {
-            alert(e.response?.data?.error || "Ошибка обновления статуса");
+            alert(e.response?.data?.error || "error changing the status");
         }
     };
 
-    // Удаление задачи
     const handleDeleteTask = async (taskId) => {
-        if (!window.confirm("Вы уверены, что хотите удалить эту задачу?")) return;
+        if (!window.confirm("are you sure you want to delete this task?")) return;
         try {
             await deleteTask(taskId);
             setTasks(tasks.filter(t => t.id !== taskId));
         } catch (e) {
-            alert(e.response?.data?.error || "Ошибка при удалении задачи");
+            alert(e.response?.data?.error || "error by deleting the task");
         }
     };
 
-    // Фильтрация задач
     const filteredTasks = tasks.filter(task => {
         const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesFilter = activeFilter === "ALL" || task.status === activeFilter;
         return matchesSearch && matchesFilter;
     });
 
-    // Стили приоритетов
     const getPriorityColor = (priority) => {
         switch (priority) {
             case 'HIGH': return "bg-red-100 text-red-700";
@@ -148,7 +152,6 @@ function ProjectsPage() {
         }
     };
 
-    // Стили статусов
     const getStatusColor = (status) => {
         switch (status) {
             case "DONE": return "bg-emerald-100 text-emerald-700 border-emerald-200";
@@ -160,7 +163,6 @@ function ProjectsPage() {
 
     return (
         <div className="flex min-h-[100vh] bg-gray-100 overflow-hidden font-sans text-left">
-            {/* Сайдбар (Проекты) */}
             <aside className="w-72 bg-white border-r border-gray-200 flex flex-col z-10 shadow-sm h-[100vh]">
                 <div className="px-6 mt-8">
                     <button
@@ -182,16 +184,25 @@ function ProjectsPage() {
                             <p className="text-gray-400 text-sm px-2">no projects</p>
                         ) : (
                             projects.map(project => (
-                                <button
-                                    key={project.id}
-                                    className={`w-full py-2 px-3 flex items-center gap-3 rounded-lg transition text-sm font-medium
+                                <div  key={project.id} className={`group flex items-center justify-between rounded-lg transition text-sm font-medium w-full
                                         ${selectedProject?.id === project.id
-                                        ? 'bg-cyan-50 text-cyan-800'
-                                        : 'text-gray-600 hover:bg-gray-50'}`}
-                                    onClick={() => setSelectedProject(project)}>
-                                    <Folder className={`w-4 h-4 ${selectedProject?.id === project.id ? 'text-cyan-600' : 'text-gray-400'}`}/>
-                                    <span className="truncate">{project.name}</span>
-                                </button>
+                                    ? 'bg-cyan-50 text-cyan-800'
+                                    : 'text-gray-600 hover:bg-gray-50'}`}>
+                                    <button
+                                        className="flex-1 py-2 px-3 flex items-center gap-3 text-left truncate"
+                                        onClick={() => setSelectedProject(project)}>
+                                        <Folder className={`w-4 h-4 ${selectedProject?.id === project.id ? 'text-cyan-600' : 'text-gray-400'}`}/>
+                                        <span className="truncate">{project.name}</span>
+                                    </button>
+
+                                    <button
+                                        onClick={(e) => handleDeleteProject(e, project.id)}
+                                        className="p-2 opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all cursor-pointer"
+                                        title="delete project">
+                                        <Trash2 className="w-4 h-4"/>
+                                    </button>
+                                </div>
+
                             ))
                         )}
                     </div>
@@ -210,7 +221,6 @@ function ProjectsPage() {
                 </div>
             </aside>
 
-            {/* Основная часть (Задачи) */}
             <main className="flex-1 flex flex-col h-[100vh]">
                 <header className="h-20 border-b border-gray-200 bg-white px-8 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
@@ -229,7 +239,7 @@ function ProjectsPage() {
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search of tasks..."
+                                placeholder="search tasks......"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-100 rounded-lg w-64 transition-all outline-none text-sm"
@@ -248,13 +258,11 @@ function ProjectsPage() {
                 <div className="p-8 flex-1 overflow-y-auto bg-gray-50">
                     {selectedProject ? (
                         <div className="max-w-5xl mx-auto">
-                            {/* Фильтры и кнопка добавления */}
                             <div className="flex items-center justify-between mb-6">
                                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex p-1">
                                     {[
                                         { id: "ALL", label: "all" },
                                         { id: "TODO", label: "todo" },
-                                        { id: "IN_PROGRESS", label: "in process" },
                                         { id: "DONE", label: "done" }
                                     ].map(f => (
                                         <button
@@ -273,11 +281,10 @@ function ProjectsPage() {
                                     onClick={() => setIsTaskModalOpen(true)}
                                     className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-medium transition-colors shadow-sm cursor-pointer"
                                 >
-                                    <Plus className="w-5 h-5" />  add a task
+                                    <Plus className="w-5 h-5" />  new task
                                 </button>
                             </div>
 
-                            {/* Список задач */}
                             <div className="flex flex-col gap-3">
                                 {filteredTasks.length === 0 ? (
                                     <div className="text-center py-16 bg-white rounded-xl border border-gray-200 border-dashed">
@@ -312,7 +319,6 @@ function ProjectsPage() {
                                                         </span>
                                                     </div>
 
-                                                    {/* Кнопка удаления */}
                                                     <button
                                                         onClick={() => handleDeleteTask(task.id)}
                                                         className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition cursor-pointer"
@@ -350,7 +356,6 @@ function ProjectsPage() {
                 </div>
             </main>
 
-            {/* Модальное окно создания проекта */}
             {isProjectModalOpen && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
@@ -372,15 +377,6 @@ function ProjectsPage() {
                                     placeholder="example: redisgn of smth"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">description (optionally)</label>
-                                <textarea
-                                    value={newProjectForm.description}
-                                    onChange={e => setNewProjectForm({...newProjectForm, description: e.target.value})}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 h-24 resize-none"
-                                    placeholder="explain in short the gist of the task..."
-                                />
-                            </div>
                             <div className="flex justify-end gap-3 mt-4">
                                 <button type="button" onClick={() => setIsProjectModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium cursor-pointer transition">
                                     cancel
@@ -394,7 +390,6 @@ function ProjectsPage() {
                 </div>
             )}
 
-            {/* Модальное окно создания задачи */}
             {isTaskModalOpen && selectedProject && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">

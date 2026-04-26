@@ -117,7 +117,7 @@ function LandingPage() {
                             <h2 className="text-3xl font-bold mb-6">Hello!</h2>
                             <div className="space-y-4 text-slate-300 leading-relaxed mb-8 flex-1">
                                 <p>
-                                    I am a 4th-year Computer Science bachelor's student at the Technical University of Dresden. Building this project over the last 4-5 months has been a profound learning experience, giving me a solid grasp of full-stack development.
+                                    I am a fourth-semester Computer Science bachelor's student at the Technical University of Dresden. Building this project over the last 4-5 months has been a profound learning experience, giving me a solid grasp of full-stack development.
                                 </p>
                                 <p>
                                     I learned how to seamlessly connect frontend and backend architectures, implement foundational security, and efficiently interact with databases.
@@ -129,7 +129,7 @@ function LandingPage() {
 
                             <div className="flex gap-4 mt-auto">
                                 <a href="https://github.com/Artem20042020Mik/petProject-app" className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-lg font-bold hover:bg-slate-100 transition">
-                                    <GitCommit className="w-5 h-5" /> GitHub Project
+                                    <GitCommit className="w-5 h-5" /> Project on GitHub
                                 </a>
                             </div>
                         </div>

@@ -130,7 +130,7 @@ function ProfilePage() {
 
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="bg-white rounded-lg p-4 border border-indigo-100 shadow-sm text-center">
-                                                    <p className="text-xs font-black text-indigo-500 mb-1 uppercase">total amount of pages</p>
+                                                    <p className="text-xs font-black text-indigo-500 mb-1 uppercase">total amount of projects</p>
                                                     <p className="font-black text-2xl text-indigo-900"> {bossData.amountOfProjects}</p>
                                                 </div>
                                                 <div className="bg-white rounded-lg p-4 border border-indigo-100 shadow-sm text-center">
