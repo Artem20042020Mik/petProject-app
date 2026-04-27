@@ -82,7 +82,7 @@ Upon the first startup, Flyway will automatically create a default boss account 
  
 ---
 
-## 💻 Local Development (Without Docker)
+##  Local Development (Without Docker)
 
 If you prefer to run the application locally for development:
 
